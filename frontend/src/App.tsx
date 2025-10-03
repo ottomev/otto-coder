@@ -136,7 +136,7 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader message="Loading..." size={32} />
       </div>
     );
@@ -147,7 +147,7 @@ function AppContent() {
       <ThemeProvider initialTheme={config?.theme || ThemeMode.SYSTEM}>
         <AppWithStyleOverride>
           <SearchProvider>
-            <div className="h-screen flex flex-col bg-background">
+            <div className="h-screen flex flex-col">
               {/* Custom context menu and VS Code-friendly interactions when embedded in iframe */}
               <WebviewContextMenu />
 

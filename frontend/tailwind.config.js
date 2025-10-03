@@ -49,10 +49,11 @@ module.exports = {
         xl: ['1.125rem', { lineHeight: '1.75rem' }],  // 18px / 28px
       },
       colors: {
+        'card-background': 'hsl(0 0% 5.88%)',
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
+        background: "#000000",
         foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
@@ -123,7 +124,8 @@ module.exports = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        'chivo-mono': ['Chivo Mono', 'Noto Emoji', 'monospace'],
+        'sans': ['Inter', 'Noto Emoji', 'system-ui', '-apple-system', 'sans-serif'],
+        'mono': ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       keyframes: {
         "accordion-down": {

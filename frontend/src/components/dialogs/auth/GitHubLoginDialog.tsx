@@ -141,7 +141,7 @@ const GitHubLoginDialog = NiceModal.create(() => {
           </div>
           <DialogDescription className="text-left pt-1">
             Connect your GitHub account to create and manage pull requests
-            directly from Vibe Kanban.
+            directly from Otto Coder.
           </DialogDescription>
         </DialogHeader>
         {loading ? (

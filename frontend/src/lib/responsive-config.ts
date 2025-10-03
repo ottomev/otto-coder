@@ -44,7 +44,7 @@ export const getTaskPanelClasses = (forceFullScreen: boolean) => {
 };
 
 export const getTaskPanelInnerClasses = () => {
-  return `flex-1 flex flex-col min-h-0 w-full max-w-[1400px] bg-muted border-x`;
+  return `flex-1 flex flex-col min-h-0 w-full max-w-[1400px] bg-[#0a0a0a]`;
 };
 
 // Generate classes for backdrop (only show in overlay mode)

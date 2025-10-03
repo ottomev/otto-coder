@@ -126,7 +126,8 @@ export function ProjectFormFields({
               <>
                 {/* From Git Repository card */}
                 <div
-                  className="p-4 border cursor-pointer hover:shadow-md transition-shadow rounded-lg bg-card"
+                  className="p-4 glass-card cursor-pointer hover:shadow-xl hover:brightness-110 transition-all rounded-lg"
+                  style={{ background: 'rgba(255, 255, 255, 0.05)' }}
                   onClick={() => setShowRecentRepos(true)}
                 >
                   <div className="flex items-start gap-3">
@@ -144,7 +145,8 @@ export function ProjectFormFields({
 
                 {/* Create Blank Project card */}
                 <div
-                  className="p-4 border cursor-pointer hover:shadow-md transition-shadow rounded-lg bg-card"
+                  className="p-4 glass-card cursor-pointer hover:shadow-xl hover:brightness-110 transition-all rounded-lg"
+                  style={{ background: 'rgba(255, 255, 255, 0.05)' }}
                   onClick={() => {
                     setRepoMode('new');
                     setError('');
@@ -188,7 +190,7 @@ export function ProjectFormFields({
                       .map((repo) => (
                         <div
                           key={repo.path}
-                          className="p-4 border cursor-pointer hover:shadow-md transition-shadow rounded-lg bg-card"
+                          className="p-4 glass-card cursor-pointer hover:shadow-xl transition-all rounded-lg"
                           onClick={() => {
                             setError('');
                             const cleanName = generateProjectNameFromPath(
@@ -233,7 +235,7 @@ export function ProjectFormFields({
 
                 {/* Loading state */}
                 {loading && (
-                  <div className="p-4 border rounded-lg bg-card">
+                  <div className="p-4 glass-card rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="animate-spin h-5 w-5 border-2 border-muted-foreground border-t-transparent rounded-full"></div>
                       <div className="text-sm text-muted-foreground">
@@ -257,7 +259,7 @@ export function ProjectFormFields({
 
                 {/* Browse for repository card */}
                 <div
-                  className="p-4 border border-dashed cursor-pointer hover:shadow-md transition-shadow rounded-lg bg-card"
+                  className="p-4 border border-dashed cursor-pointer hover:shadow-xl transition-all rounded-lg glass-surface"
                   onClick={async () => {
                     setError('');
                     const selectedPath = await showFolderPicker({
@@ -436,7 +438,7 @@ export function ProjectFormFields({
               onChange={(e) => setSetupScript(e.target.value)}
               placeholder={placeholders.setup}
               rows={4}
-              className="w-full px-3 py-2 text-sm border border-input bg-background text-foreground rounded-md resize-vertical focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full px-3 py-2 text-sm glass-input text-foreground rounded-md resize-vertical focus:outline-none focus:ring-0"
             />
             <p className="text-sm text-muted-foreground">
               This script will run after creating the worktree and before the
@@ -453,7 +455,7 @@ export function ProjectFormFields({
               onChange={(e) => setDevScript(e.target.value)}
               placeholder={placeholders.dev}
               rows={4}
-              className="w-full px-3 py-2 text-sm border border-input bg-background text-foreground rounded-md resize-vertical focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full px-3 py-2 text-sm glass-input text-foreground rounded-md resize-vertical focus:outline-none focus:ring-0"
             />
             <p className="text-sm text-muted-foreground">
               This script can be run from task attempts to start a development
@@ -470,7 +472,7 @@ export function ProjectFormFields({
               onChange={(e) => setCleanupScript(e.target.value)}
               placeholder={placeholders.cleanup}
               rows={4}
-              className="w-full px-3 py-2 text-sm border border-input bg-background text-foreground rounded-md resize-vertical focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full px-3 py-2 text-sm glass-input text-foreground rounded-md resize-vertical focus:outline-none focus:ring-0"
             />
             <p className="text-sm text-muted-foreground">
               This script runs after coding agent execution{' '}

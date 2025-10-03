@@ -718,7 +718,7 @@ export function GeneralSettings() {
       </Card>
 
       {/* Sticky Save Button */}
-      <div className="sticky bottom-0 z-10 bg-background/80 backdrop-blur-sm border-t py-4">
+      <div className="sticky bottom-0 z-10 glass-surface border-t py-4">
         <div className="flex items-center justify-between">
           {hasUnsavedChanges ? (
             <span className="text-sm text-muted-foreground">

@@ -40,8 +40,8 @@ pub fn router(deployment: DeploymentImpl) -> IntoMakeService<Router> {
         .with_state(deployment);
 
     Router::new()
+        .nest("/api", base_routes)
         .route("/", get(frontend::serve_frontend_root))
         .route("/{*path}", get(frontend::serve_frontend))
-        .nest("/api", base_routes)
         .into_make_service()
 }

@@ -127,3 +127,13 @@ Runtime:
 - `FRONTEND_PORT`: Frontend dev port (default: 3000)
 - `HOST`: Backend host (default: 127.0.0.1)
 - `DISABLE_WORKTREE_ORPHAN_CLEANUP`: Debug flag for worktrees
+
+## Frontend Changes Deployment
+
+**CRITICAL**: After making ANY changes to frontend code (components, styles, etc.), you MUST rebuild the frontend:
+
+```bash
+cd frontend && pnpm build
+```
+
+The production server serves static files from `frontend/dist` on port 8080. Without rebuilding, your changes will NOT be visible to the user.

@@ -331,7 +331,7 @@ export function MultiFileSearchTextarea({
         createPortal(
           <div
             ref={dropdownRef}
-            className="fixed bg-background border border-border rounded-md shadow-lg overflow-y-auto min-w-64"
+            className="fixed glass-card rounded-md shadow-xl overflow-y-auto min-w-64"
             style={{
               top: dropdownPosition.top,
               left: dropdownPosition.left,

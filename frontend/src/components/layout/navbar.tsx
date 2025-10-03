@@ -1,5 +1,4 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -17,8 +16,6 @@ import {
   Plus,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
-import { SearchBar } from '@/components/search-bar';
-import { useSearch } from '@/contexts/search-context';
 import { openTaskForm } from '@/lib/openTaskForm';
 import { useProject } from '@/contexts/project-context';
 import { showProjectForm } from '@/lib/modals';
@@ -33,7 +30,7 @@ const EXTERNAL_LINKS = [
   {
     label: 'Docs',
     icon: BookOpen,
-    href: 'https://vibekanban.com/docs',
+    href: 'https://ottocoder.com/docs',
   },
   {
     label: 'Support',
@@ -45,15 +42,7 @@ const EXTERNAL_LINKS = [
 export function Navbar() {
   const location = useLocation();
   const { projectId, project } = useProject();
-  const { query, setQuery, active, clear, registerInputRef } = useSearch();
   const handleOpenInEditor = useOpenProjectInEditor(project || null);
-
-  const setSearchBarRef = useCallback(
-    (node: HTMLInputElement | null) => {
-      registerInputRef(node);
-    },
-    [registerInputRef]
-  );
 
   const handleCreateTask = () => {
     if (projectId) {
@@ -75,7 +64,7 @@ export function Navbar() {
   };
 
   return (
-    <div className="border-b bg-background">
+    <div className="border-b glass-surface">
       <div className="w-full px-3">
         <div className="flex items-center h-12 py-2">
           <div className="flex-1">
@@ -83,16 +72,6 @@ export function Navbar() {
               <Logo />
             </Link>
           </div>
-
-          <SearchBar
-            ref={setSearchBarRef}
-            className="hidden sm:flex"
-            value={query}
-            onChange={setQuery}
-            disabled={!active}
-            onClear={clear}
-            project={project || null}
-          />
 
           <div className="flex-1 flex justify-end">
             {projectId && (
@@ -142,7 +121,7 @@ export function Navbar() {
                     <DropdownMenuItem
                       key={item.to}
                       asChild
-                      className={active ? 'bg-accent' : ''}
+                      className={active ? 'bg-white/10' : ''}
                     >
                       <Link to={item.to}>
                         <Icon className="mr-2 h-4 w-4" />

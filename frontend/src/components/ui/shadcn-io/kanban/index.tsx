@@ -100,9 +100,9 @@ export const KanbanCard = ({
   return (
     <Card
       className={cn(
-        'p-3 outline-none border-b flex-col space-y-2',
+        'p-3 outline-none border-b border-white/10 flex-col space-y-2',
         isDragging && 'cursor-grabbing',
-        isOpen && 'ring-2 ring-secondary-foreground ring-inset',
+        isOpen && 'ring-2 ring-primary ring-inset',
         className
       )}
       {...listeners}
@@ -129,7 +129,7 @@ export type KanbanCardsProps = {
 };
 
 export const KanbanCards = ({ children, className }: KanbanCardsProps) => (
-  <div className={cn('flex flex-1 flex-col', className)}>{children}</div>
+  <div className={cn('flex flex-1 flex-col pt-2', className)}>{children}</div>
 );
 
 export type KanbanHeaderProps =
@@ -148,19 +148,19 @@ export const KanbanHeader = (props: KanbanHeaderProps) =>
   ) : (
     <Card
       className={cn(
-        'sticky top-0 z-20 flex shrink-0 items-center gap-2 p-3 border-b border-dashed',
-        'bg-background',
+        'sticky top-0 z-20 flex shrink-0 items-center gap-2 p-3 border-b border-white/10',
+        'glass-surface',
         props.className
       )}
       style={{
-        backgroundImage: `linear-gradient(hsl(var(${props.color}) / 0.03), hsl(var(${props.color}) / 0.03))`,
+        backgroundImage: `linear-gradient(hsl(var(${props.color}) / 0.05), hsl(var(${props.color}) / 0.05))`,
       }}
     >
       <div
         className="h-2 w-2 rounded-full"
         style={{ backgroundColor: `hsl(var(${props.color}))` }}
       />
-      <p className="m-0 text-sm">{props.name}</p>
+      <p className="m-0 text-sm font-medium">{props.name}</p>
     </Card>
   );
 
@@ -250,7 +250,7 @@ export const KanbanProvider = ({
     >
       <div
         className={cn(
-          'inline-grid grid-flow-col auto-cols-[minmax(200px,400px)] divide-x border-x h-full',
+          'inline-grid grid-flow-col auto-cols-[minmax(200px,400px)] divide-x divide-white/10 border-x border-white/10 h-full',
           className
         )}
       >
