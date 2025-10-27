@@ -117,6 +117,17 @@ fn generate_types_content() -> String {
         utils::approvals::CreateApprovalRequest::decl(),
         utils::approvals::ApprovalResponse::decl(),
         serde_json::Value::decl(),
+        // WebAssist types
+        web_assist::models::WebAssistStage::decl(),
+        web_assist::models::WebAssistProject::decl(),
+        web_assist::models::SyncStatus::decl(),
+        web_assist::models::WebAssistApproval::decl(),
+        web_assist::models::ApprovalDecision::decl(),
+        web_assist::models::Deliverable::decl(),
+        web_assist::models::CreateWebAssistProjectRequest::decl(),
+        server::routes::web_assist::WebAssistProjectStatus::decl(),
+        server::routes::web_assist::TaskStatus::decl(),
+        server::routes::web_assist::WebAssistProjectSummary::decl(),
     ];
 
     let body = decls

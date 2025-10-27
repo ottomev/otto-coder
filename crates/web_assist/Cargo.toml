@@ -33,7 +33,7 @@ uuid = { version = "1", features = ["serde", "v4"] }
 tracing = "0.1"
 
 # TypeScript type generation
-ts-rs = { version = "10.0", features = ["chrono-impl", "uuid-impl"] }
+ts-rs = { git = "https://github.com/xazukx/ts-rs.git", branch = "use-ts-enum", features = ["uuid-impl", "chrono-impl", "no-serde-warnings", "serde-json-impl"] }
 
 # Crypto for webhook signature verification
 hmac = "0.12"

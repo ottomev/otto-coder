@@ -14,6 +14,7 @@ import {
   MessageCircleQuestion,
   Menu,
   Plus,
+  Globe,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { openTaskForm } from '@/lib/openTaskForm';
@@ -23,6 +24,7 @@ import { useOpenProjectInEditor } from '@/hooks/useOpenProjectInEditor';
 
 const INTERNAL_NAV = [
   { label: 'Projects', icon: FolderOpen, to: '/projects' },
+  { label: 'WebAssist', icon: Globe, to: '/webassist' },
   { label: 'Settings', icon: Settings, to: '/settings' },
 ];
 

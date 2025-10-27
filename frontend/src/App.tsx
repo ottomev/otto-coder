@@ -5,6 +5,8 @@ import i18n from '@/i18n';
 import { Navbar } from '@/components/layout/navbar';
 import { Projects } from '@/pages/projects';
 import { ProjectTasks } from '@/pages/project-tasks';
+import { WebAssistDashboard } from '@/pages/webassist';
+import { WebAssistDetail } from '@/pages/webassist-detail';
 import { useTaskViewManager } from '@/hooks/useTaskViewManager';
 import { usePreviousPath } from '@/hooks/usePreviousPath';
 
@@ -179,6 +181,8 @@ function AppContent() {
                     path="/projects/:projectId/tasks/:taskId"
                     element={<ProjectTasks />}
                   />
+                  <Route path="/webassist" element={<WebAssistDashboard />} />
+                  <Route path="/webassist/:projectId" element={<WebAssistDetail />} />
                   <Route path="/settings/*" element={<SettingsLayout />}>
                     <Route index element={<Navigate to="general" replace />} />
                     <Route path="general" element={<GeneralSettings />} />

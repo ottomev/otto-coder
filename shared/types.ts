@@ -315,3 +315,23 @@ export type CreateApprovalRequest = { tool_name: string, tool_input: JsonValue, 
 export type ApprovalResponse = { execution_process_id: string, status: ApprovalStatus, };
 
 export type JsonValue = number | string | boolean | Array<JsonValue> | { [key in string]?: JsonValue } | null;
+
+export type WebAssistStage = "initial_review" | "ai_research" | "design_mockup" | "content_collection" | "development" | "quality_assurance" | "client_preview" | "deployment" | "delivered";
+
+export type WebAssistProject = { id: string, webassist_project_id: string, otto_project_id: string, current_stage: WebAssistStage, stage_task_mapping: string, sync_status: SyncStatus, last_synced_at: string | null, created_at: string, updated_at: string, };
+
+export type SyncStatus = "active" | "paused" | "error" | "completed";
+
+export type WebAssistApproval = { id: string, web_assist_project_id: string, stage_name: WebAssistStage, approval_id: string | null, status: ApprovalStatus, requested_at: string, responded_at: string | null, client_feedback: string | null, preview_url: string | null, deliverables: string, created_at: string, updated_at: string, };
+
+export type ApprovalDecision = { status: ApprovalStatus, feedback: string | null, };
+
+export type Deliverable = { id: string, name: string, url: string, type: string, size: bigint | null, created_at: string, };
+
+export type CreateWebAssistProjectRequest = { project_id: string, project_number: string, company_name: string, wizard_completion_id: string, is_rush_delivery: boolean, };
+
+export type WebAssistTaskStatus = { stage: string, task_id: string, status: string, progress: number | null, started_at: string | null, completed_at: string | null, };
+
+export type WebAssistProjectStatus = { otto_project_id: string, webassist_project_id: string, current_stage: string, sync_status: string, tasks: Array<WebAssistTaskStatus>, };
+
+export type WebAssistProjectSummary = { id: string, webassist_project_id: string, otto_project_id: string, company_name: string, current_stage: string, sync_status: string, pending_approvals_count: number, created_at: string, updated_at: string, };

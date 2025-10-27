@@ -1,19 +1,20 @@
 use axum::{
-    Extension, Json, Router,
+    Json, Router,
     body::Bytes,
     extract::{Path, State},
     http::{HeaderMap, StatusCode},
-    response::Json as ResponseJson,
+    response::{Json as ResponseJson, sse::{Event, KeepAlive, Sse}},
     routing::{get, post},
 };
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use futures::stream::Stream;
+use serde::Serialize;
+use std::{convert::Infallible, time::Duration};
+use tokio::time::interval;
 use ts_rs::TS;
 use utils::response::ApiResponse;
 use uuid::Uuid;
 use web_assist::{
     models::{ApprovalDecision, ApprovalStatus, Deliverable, WebAssistApproval, WebAssistProject},
-    ApprovalSync, ProjectManager, WebhookHandler,
 };
 
 use crate::{DeploymentImpl, error::ApiError};
@@ -37,6 +38,56 @@ pub struct TaskStatus {
     pub progress: Option<i32>,
     pub started_at: Option<String>,
     pub completed_at: Option<String>,
+}
+
+/// SSE event types for WebAssist
+#[derive(Debug, Serialize, Clone)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum WebAssistEvent {
+    StageChanged {
+        project_id: Uuid,
+        old_stage: String,
+        new_stage: String,
+    },
+    ApprovalRequested {
+        project_id: Uuid,
+        approval_id: Uuid,
+        stage: String,
+    },
+    ApprovalResponded {
+        project_id: Uuid,
+        approval_id: Uuid,
+        status: String,
+    },
+    TaskStarted {
+        project_id: Uuid,
+        task_id: Uuid,
+        stage: String,
+    },
+    TaskCompleted {
+        project_id: Uuid,
+        task_id: Uuid,
+        stage: String,
+    },
+    SyncStatusChanged {
+        project_id: Uuid,
+        old_status: String,
+        new_status: String,
+    },
+}
+
+/// Summary response for project list
+#[derive(Debug, Serialize, TS)]
+pub struct WebAssistProjectSummary {
+    pub id: Uuid,
+    pub webassist_project_id: Uuid,
+    pub otto_project_id: Uuid,
+    pub company_name: String,
+    pub current_stage: String,
+    pub sync_status: String,
+    pub pending_approvals_count: i32,
+    pub created_at: String,
+    pub updated_at: String,
 }
 
 /// Webhook endpoint - receives events from Supabase
@@ -117,7 +168,7 @@ pub async fn get_project_status(
 /// Get deliverables for a specific stage
 pub async fn get_stage_deliverables(
     State(deployment): State<DeploymentImpl>,
-    Path((webassist_project_id, stage_name)): Path<(Uuid, String)>,
+    Path((webassist_project_id, _stage_name)): Path<(Uuid, String)>,
 ) -> Result<ResponseJson<ApiResponse<Vec<Deliverable>>>, ApiError> {
     // Find WebAssist project
     let _wa_project =
@@ -249,16 +300,142 @@ pub async fn manual_sync(
     )))
 }
 
+/// List all WebAssist projects
+pub async fn list_projects(
+    State(deployment): State<DeploymentImpl>,
+) -> Result<ResponseJson<ApiResponse<Vec<WebAssistProjectSummary>>>, ApiError> {
+    // Get all WebAssist projects
+    let wa_projects = WebAssistProject::find_all(&deployment.db().pool).await?;
+
+    // Get project names and pending approval counts
+    let mut summaries = Vec::new();
+    for wa_project in wa_projects {
+        // Get Otto project for company name
+        let otto_project = db::models::project::Project::find_by_id(
+            &deployment.db().pool,
+            wa_project.otto_project_id,
+        )
+        .await?
+        .ok_or_else(|| ApiError::NotFound("Otto project not found".to_string()))?;
+
+        // Count pending approvals
+        let pending_count: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM web_assist_approvals WHERE web_assist_project_id = $1 AND status = 'pending'"
+        )
+        .bind(wa_project.id)
+        .fetch_one(&deployment.db().pool)
+        .await
+        .unwrap_or(0);
+
+        summaries.push(WebAssistProjectSummary {
+            id: wa_project.id,
+            webassist_project_id: wa_project.webassist_project_id,
+            otto_project_id: wa_project.otto_project_id,
+            company_name: otto_project.name,
+            current_stage: wa_project.current_stage.to_string(),
+            sync_status: format!("{:?}", wa_project.sync_status),
+            pending_approvals_count: pending_count as i32,
+            created_at: wa_project.created_at.to_rfc3339(),
+            updated_at: wa_project.updated_at.to_rfc3339(),
+        });
+    }
+
+    Ok(ResponseJson(ApiResponse::success(summaries)))
+}
+
+/// SSE endpoint for WebAssist project events
+pub async fn project_events(
+    State(deployment): State<DeploymentImpl>,
+    Path(webassist_project_id): Path<Uuid>,
+) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
+    // Find the WebAssist project to ensure it exists
+    let wa_project_result = WebAssistProject::find_by_webassist_id(
+        &deployment.db().pool,
+        webassist_project_id,
+    )
+    .await;
+
+    // Clone pool for use in stream
+    let pool = deployment.db().pool.clone();
+
+    let stream = async_stream::stream! {
+        // If project doesn't exist, send error and end stream
+        if wa_project_result.is_err() || wa_project_result.as_ref().ok().and_then(|p| p.as_ref()).is_none() {
+            let error_event = serde_json::json!({
+                "type": "error",
+                "message": "WebAssist project not found"
+            });
+            yield Ok(Event::default().json_data(error_event).unwrap());
+            return;
+        }
+
+        let mut ticker = interval(Duration::from_secs(5));
+        let mut last_stage = String::new();
+        let mut last_sync_status = String::new();
+
+        loop {
+            ticker.tick().await;
+
+            // Query current state
+            match WebAssistProject::find_by_webassist_id(&pool, webassist_project_id).await {
+                Ok(Some(project)) => {
+                    let current_stage = project.current_stage.to_string();
+                    let current_sync = format!("{:?}", project.sync_status);
+
+                    // Check for stage change
+                    if !last_stage.is_empty() && last_stage != current_stage {
+                        let event = WebAssistEvent::StageChanged {
+                            project_id: webassist_project_id,
+                            old_stage: last_stage.clone(),
+                            new_stage: current_stage.clone(),
+                        };
+                        if let Ok(data) = serde_json::to_value(&event) {
+                            yield Ok(Event::default().json_data(data).unwrap());
+                        }
+                    }
+
+                    // Check for sync status change
+                    if !last_sync_status.is_empty() && last_sync_status != current_sync {
+                        let event = WebAssistEvent::SyncStatusChanged {
+                            project_id: webassist_project_id,
+                            old_status: last_sync_status.clone(),
+                            new_status: current_sync.clone(),
+                        };
+                        if let Ok(data) = serde_json::to_value(&event) {
+                            yield Ok(Event::default().json_data(data).unwrap());
+                        }
+                    }
+
+                    last_stage = current_stage;
+                    last_sync_status = current_sync;
+                }
+                Ok(None) => {
+                    // Project was deleted
+                    break;
+                }
+                Err(e) => {
+                    tracing::error!("Error fetching WebAssist project: {}", e);
+                    break;
+                }
+            }
+        }
+    };
+
+    Sse::new(stream).keep_alive(KeepAlive::default())
+}
+
 /// Router for WebAssist endpoints
-pub fn router(deployment: &DeploymentImpl) -> Router<DeploymentImpl> {
+pub fn router(_deployment: &DeploymentImpl) -> Router<DeploymentImpl> {
     Router::new()
         .route("/webhook", post(webhook_receiver))
-        .route("/projects/:id", get(get_project_status))
+        .route("/projects", get(list_projects))
+        .route("/projects/{id}", get(get_project_status))
+        .route("/projects/{id}/events", get(project_events))
         .route(
-            "/projects/:id/stages/:stage/deliverables",
+            "/projects/{id}/stages/{stage}/deliverables",
             get(get_stage_deliverables),
         )
-        .route("/projects/:id/sync", post(manual_sync))
-        .route("/approvals/:id", post(submit_approval))
-        .route("/projects/:id/approvals", get(get_project_approvals))
+        .route("/projects/{id}/sync", post(manual_sync))
+        .route("/approvals/{id}", post(submit_approval))
+        .route("/projects/{id}/approvals", get(get_project_approvals))
 }

@@ -207,6 +207,27 @@ pub struct Deliverable {
 }
 
 impl WebAssistProject {
+    /// Find all WebAssist projects
+    pub async fn find_all(pool: &SqlitePool) -> Result<Vec<Self>, sqlx::Error> {
+        sqlx::query_as!(
+            WebAssistProject,
+            r#"SELECT
+                id as "id!: Uuid",
+                webassist_project_id as "webassist_project_id!: Uuid",
+                otto_project_id as "otto_project_id!: Uuid",
+                current_stage as "current_stage!: WebAssistStage",
+                stage_task_mapping,
+                sync_status as "sync_status!: SyncStatus",
+                last_synced_at as "last_synced_at: DateTime<Utc>",
+                created_at as "created_at!: DateTime<Utc>",
+                updated_at as "updated_at!: DateTime<Utc>"
+            FROM web_assist_projects
+            ORDER BY created_at DESC"#
+        )
+        .fetch_all(pool)
+        .await
+    }
+
     /// Find by WebAssist project ID
     pub async fn find_by_webassist_id(
         pool: &SqlitePool,
