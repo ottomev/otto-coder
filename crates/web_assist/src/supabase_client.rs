@@ -433,6 +433,289 @@ impl SupabaseClient {
             );
         }
     }
+
+    // ========================================================================
+    // Otto Coder Integration Methods (New Architecture)
+    // ========================================================================
+
+    /// Create otto_coder_projects record in Supabase
+    pub async fn create_otto_coder_project(
+        &self,
+        webassist_project_id: Uuid,
+        otto_project_id: Uuid,
+    ) -> Result<()> {
+        let url = format!("{}/rest/v1/otto_coder_projects", self.config.url);
+
+        let payload = json!({
+            "webassist_project_id": webassist_project_id,
+            "otto_project_id": otto_project_id,
+            "current_stage": "initial_review",
+            "sync_status": "active",
+            "overall_progress": 0
+        });
+
+        let response = self
+            .client
+            .post(&url)
+            .header("Authorization", self.auth_header())
+            .header("apikey", &self.config.anon_key)
+            .header("Content-Type", "application/json")
+            .header("Prefer", "return=minimal")
+            .json(&payload)
+            .send()
+            .await
+            .context("Failed to create otto_coder_projects record")?;
+
+        if response.status().is_success() {
+            tracing::info!(
+                "Created otto_coder_projects record: webassist={}, otto={}",
+                webassist_project_id,
+                otto_project_id
+            );
+            Ok(())
+        } else {
+            let status = response.status();
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            anyhow::bail!(
+                "Failed to create otto_coder_projects (status {}): {}",
+                status,
+                error_text
+            );
+        }
+    }
+
+    /// Update otto_coder_projects stage and progress
+    pub async fn update_otto_coder_project(
+        &self,
+        otto_project_id: Uuid,
+        current_stage: &str,
+        overall_progress: i32,
+    ) -> Result<()> {
+        let url = format!(
+            "{}/rest/v1/otto_coder_projects?otto_project_id=eq.{}",
+            self.config.url, otto_project_id
+        );
+
+        let payload = json!({
+            "current_stage": current_stage,
+            "overall_progress": overall_progress,
+            "sync_status": "active"
+        });
+
+        let response = self
+            .client
+            .patch(&url)
+            .header("Authorization", self.auth_header())
+            .header("apikey", &self.config.anon_key)
+            .header("Content-Type", "application/json")
+            .header("Prefer", "return=minimal")
+            .json(&payload)
+            .send()
+            .await
+            .context("Failed to update otto_coder_projects")?;
+
+        if response.status().is_success() {
+            tracing::debug!(
+                "Updated otto_coder_projects: {} → {} ({}%)",
+                otto_project_id,
+                current_stage,
+                overall_progress
+            );
+            Ok(())
+        } else {
+            let status = response.status();
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            anyhow::bail!(
+                "Failed to update otto_coder_projects (status {}): {}",
+                status,
+                error_text
+            );
+        }
+    }
+
+    /// Create otto_coder_tasks record in Supabase
+    pub async fn create_otto_coder_task(
+        &self,
+        otto_project_id: Uuid,
+        stage_name: &str,
+        stage_order: i32,
+        task_id: Uuid,
+        status: &str, // "Todo" | "InProgress" | "Done"
+    ) -> Result<()> {
+        let url = format!("{}/rest/v1/otto_coder_tasks", self.config.url);
+
+        let payload = json!({
+            "otto_project_id": otto_project_id,
+            "stage_name": stage_name,
+            "stage_order": stage_order,
+            "task_id": task_id,
+            "status": status,
+            "progress": if status == "InProgress" { 0 } else { 0 }
+        });
+
+        let response = self
+            .client
+            .post(&url)
+            .header("Authorization", self.auth_header())
+            .header("apikey", &self.config.anon_key)
+            .header("Content-Type", "application/json")
+            .header("Prefer", "return=minimal")
+            .json(&payload)
+            .send()
+            .await
+            .context("Failed to create otto_coder_tasks record")?;
+
+        if response.status().is_success() {
+            tracing::debug!(
+                "Created otto_coder_tasks: {} / {} (order {})",
+                otto_project_id,
+                stage_name,
+                stage_order
+            );
+            Ok(())
+        } else {
+            let status_code = response.status();
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            anyhow::bail!(
+                "Failed to create otto_coder_tasks (status {}): {}",
+                status_code,
+                error_text
+            );
+        }
+    }
+
+    /// Update otto_coder_tasks progress and status
+    pub async fn update_otto_coder_task(
+        &self,
+        task_id: Uuid,
+        progress: i32,
+        status: &str, // "Todo" | "InProgress" | "Done"
+    ) -> Result<()> {
+        let url = format!(
+            "{}/rest/v1/otto_coder_tasks?task_id=eq.{}",
+            self.config.url, task_id
+        );
+
+        let mut payload = json!({
+            "status": status,
+            "progress": progress
+        });
+
+        // Set timestamps based on status
+        if status == "InProgress" {
+            payload["started_at"] = json!(chrono::Utc::now().to_rfc3339());
+        } else if status == "Done" {
+            payload["completed_at"] = json!(chrono::Utc::now().to_rfc3339());
+        }
+
+        let response = self
+            .client
+            .patch(&url)
+            .header("Authorization", self.auth_header())
+            .header("apikey", &self.config.anon_key)
+            .header("Content-Type", "application/json")
+            .header("Prefer", "return=minimal")
+            .json(&payload)
+            .send()
+            .await
+            .context("Failed to update otto_coder_tasks")?;
+
+        if response.status().is_success() {
+            tracing::debug!(
+                "Updated otto_coder_tasks: {} → {} ({}%)",
+                task_id,
+                status,
+                progress
+            );
+            Ok(())
+        } else {
+            let status_code = response.status();
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            anyhow::bail!(
+                "Failed to update otto_coder_tasks (status {}): {}",
+                status_code,
+                error_text
+            );
+        }
+    }
+
+    /// Create otto_coder_deliverables record in Supabase
+    pub async fn create_otto_coder_deliverable(
+        &self,
+        otto_project_id: Uuid,
+        stage_name: &str,
+        name: &str,
+        url: &str,
+        file_type: &str, // "file" | "link" | "preview"
+        description: Option<&str>,
+        mime_type: Option<&str>,
+        size_bytes: Option<i64>,
+    ) -> Result<()> {
+        let url_endpoint = format!("{}/rest/v1/otto_coder_deliverables", self.config.url);
+
+        let mut payload = json!({
+            "otto_project_id": otto_project_id,
+            "stage_name": stage_name,
+            "name": name,
+            "url": url,
+            "type": file_type
+        });
+
+        if let Some(desc) = description {
+            payload["description"] = json!(desc);
+        }
+        if let Some(mime) = mime_type {
+            payload["mime_type"] = json!(mime);
+        }
+        if let Some(size) = size_bytes {
+            payload["size_bytes"] = json!(size);
+        }
+
+        let response = self
+            .client
+            .post(&url_endpoint)
+            .header("Authorization", self.auth_header())
+            .header("apikey", &self.config.anon_key)
+            .header("Content-Type", "application/json")
+            .header("Prefer", "return=minimal")
+            .json(&payload)
+            .send()
+            .await
+            .context("Failed to create otto_coder_deliverables record")?;
+
+        if response.status().is_success() {
+            tracing::info!(
+                "Created otto_coder_deliverables: {} / {} - {}",
+                otto_project_id,
+                stage_name,
+                name
+            );
+            Ok(())
+        } else {
+            let status = response.status();
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            anyhow::bail!(
+                "Failed to create otto_coder_deliverables (status {}): {}",
+                status,
+                error_text
+            );
+        }
+    }
 }
 
 #[cfg(test)]

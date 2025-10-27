@@ -120,6 +120,8 @@ pub async fn webhook_receiver(
 }
 
 /// Get WebAssist project status
+/// DEPRECATED: Frontend reads from Supabase directly now
+#[allow(dead_code)]
 pub async fn get_project_status(
     State(deployment): State<DeploymentImpl>,
     Path(webassist_project_id): Path<Uuid>,
@@ -166,6 +168,8 @@ pub async fn get_project_status(
 }
 
 /// Get deliverables for a specific stage
+/// DEPRECATED: Frontend reads from Supabase directly now
+#[allow(dead_code)]
 pub async fn get_stage_deliverables(
     State(deployment): State<DeploymentImpl>,
     Path((webassist_project_id, _stage_name)): Path<(Uuid, String)>,
@@ -236,6 +240,8 @@ pub async fn submit_approval(
 }
 
 /// Get all approvals for a project
+/// DEPRECATED: Frontend reads from Supabase directly now
+#[allow(dead_code)]
 pub async fn get_project_approvals(
     State(deployment): State<DeploymentImpl>,
     Path(webassist_project_id): Path<Uuid>,
@@ -429,13 +435,10 @@ pub fn router(_deployment: &DeploymentImpl) -> Router<DeploymentImpl> {
     Router::new()
         .route("/webhook", post(webhook_receiver))
         .route("/projects", get(list_projects))
-        .route("/projects/{id}", get(get_project_status))
+        // Removed: GET /projects/{id} - Frontend reads from Supabase directly
         .route("/projects/{id}/events", get(project_events))
-        .route(
-            "/projects/{id}/stages/{stage}/deliverables",
-            get(get_stage_deliverables),
-        )
+        // Removed: GET /projects/{id}/stages/{stage}/deliverables - Not needed
         .route("/projects/{id}/sync", post(manual_sync))
         .route("/approvals/{id}", post(submit_approval))
-        .route("/projects/{id}/approvals", get(get_project_approvals))
+        // Removed: GET /projects/{id}/approvals - Not needed
 }

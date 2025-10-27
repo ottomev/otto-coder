@@ -157,6 +157,41 @@ impl StageExecutor {
         Ok(())
     }
 
+    /// Register a deliverable for a stage (writes to Supabase)
+    /// Call this when AI agents create files/assets during stage execution
+    pub async fn register_deliverable(
+        &self,
+        otto_project_id: Uuid,
+        stage: WebAssistStage,
+        name: &str,
+        url: &str,
+        file_type: &str, // "file", "link", "preview"
+        description: Option<&str>,
+        mime_type: Option<&str>,
+        size_bytes: Option<i64>,
+    ) -> Result<()> {
+        tracing::info!(
+            "Registering deliverable for stage {}: {}",
+            stage,
+            name
+        );
+
+        self.supabase_client
+            .create_otto_coder_deliverable(
+                otto_project_id,
+                &stage.to_string(),
+                name,
+                url,
+                file_type,
+                description,
+                mime_type,
+                size_bytes,
+            )
+            .await?;
+
+        Ok(())
+    }
+
     /// Get human-readable stage name
     fn stage_display_name(&self, stage: &WebAssistStage) -> &'static str {
         match stage {

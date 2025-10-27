@@ -83,7 +83,34 @@ impl ProjectManager {
         )
         .await?;
 
-        // 7. Notify WebAssist of project creation
+        // 7. Write to Supabase otto_coder_projects table (NEW ARCHITECTURE)
+        self.supabase_client
+            .create_otto_coder_project(request.project_id, otto_project.id)
+            .await
+            .context("Failed to create otto_coder_projects record in Supabase")?;
+
+        // 8. Write to Supabase otto_coder_tasks table for all 9 stages (NEW ARCHITECTURE)
+        let stages = WebAssistStage::all_stages();
+        for (index, stage) in stages.iter().enumerate() {
+            let task_id = *stage_task_mapping
+                .get(&stage.to_string())
+                .context(format!("Task ID not found for stage {}", stage))?;
+
+            let status = if index == 0 { "InProgress" } else { "Todo" };
+
+            self.supabase_client
+                .create_otto_coder_task(
+                    otto_project.id,
+                    &stage.to_string(),
+                    (index + 1) as i32,
+                    task_id,
+                    status,
+                )
+                .await
+                .context(format!("Failed to create otto_coder_tasks record for stage {}", stage))?;
+        }
+
+        // 9. Notify WebAssist of project creation
         self.supabase_client
             .create_project_update(
                 request.project_id,
@@ -98,7 +125,7 @@ impl ProjectManager {
             )
             .await?;
 
-        // 8. Start first task (Initial Review - AI Research)
+        // 10. Start first task (Initial Review - AI Research)
         self.start_first_task(wa_project.id, &stage_task_mapping)
             .await?;
 

@@ -188,6 +188,38 @@ impl LocalContainerService {
         }
         let notify_cfg = config.read().await.notifications.clone();
         NotificationService::notify_execution_halted(notify_cfg, ctx).await;
+
+        // Sync WebAssist task progress to Supabase (if this is a WebAssist project)
+        let config_path = std::path::PathBuf::from("config/web-assist.toml");
+        if let Ok(web_assist_config) = web_assist::load_web_assist_config(&config_path).await {
+            if web_assist_config.enabled {
+                // Convert SupabaseConfigSection to SupabaseConfig
+                if let (Some(url), Some(anon_key)) = (
+                    web_assist_config.supabase.url,
+                    web_assist_config.supabase.anon_key,
+                ) {
+                    let supabase_config = web_assist::SupabaseConfig {
+                        url,
+                        anon_key,
+                        service_role_key: web_assist_config.supabase.service_role_key,
+                    };
+
+                    match web_assist::SupabaseClient::new(supabase_config) {
+                        Ok(client) => {
+                            let supabase_client = std::sync::Arc::new(client);
+                            let task_sync = web_assist::TaskSyncService::new(db.pool.clone(), supabase_client);
+
+                            if let Err(e) = task_sync.on_execution_completed(ctx).await {
+                                tracing::error!("Failed to sync WebAssist task progress to Supabase: {}", e);
+                            }
+                        }
+                        Err(e) => {
+                            tracing::error!("Failed to create Supabase client: {}", e);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /// Defensively check for externally deleted worktrees and mark them as deleted in the database
