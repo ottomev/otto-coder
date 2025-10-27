@@ -2,6 +2,7 @@ use axum::{
     Router,
     routing::{IntoMakeService, get},
 };
+use tower_http::cors::{CorsLayer, Any};
 
 use crate::DeploymentImpl;
 
@@ -24,6 +25,15 @@ pub mod tasks;
 pub mod web_assist;
 
 pub fn router(deployment: DeploymentImpl) -> IntoMakeService<Router> {
+    // Configure CORS to allow requests from localhost:3000 and webassist.otto.lk
+    let cors = CorsLayer::new()
+        .allow_origin([
+            "http://localhost:3000".parse::<axum::http::HeaderValue>().unwrap(),
+            "https://webassist.otto.lk".parse::<axum::http::HeaderValue>().unwrap(),
+        ])
+        .allow_methods(Any)
+        .allow_headers(Any);
+
     // Create routers with different middleware layers
     let base_routes = Router::new()
         .route("/health", get(health::health_check))
@@ -41,6 +51,7 @@ pub fn router(deployment: DeploymentImpl) -> IntoMakeService<Router> {
         .nest("/images", images::routes())
         .nest("/github-accounts", github_accounts::router(&deployment))
         .nest("/web-assist", web_assist::router(&deployment))
+        .layer(cors)
         .with_state(deployment);
 
     Router::new()
