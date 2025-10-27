@@ -191,7 +191,7 @@ pub struct ApprovalDecision {
 pub struct WebhookEvent {
     pub event: String, // "project.created", "approval.updated", etc.
     #[serde(flatten)]
-    #[ts(type = "Record<string, any>")]
+    #[ts(skip)]
     pub data: serde_json::Value,
 }
 
@@ -297,12 +297,13 @@ impl WebAssistProject {
         id: Uuid,
         stage: WebAssistStage,
     ) -> Result<(), sqlx::Error> {
+        let stage_value = stage as WebAssistStage;
         sqlx::query!(
             "UPDATE web_assist_projects
             SET current_stage = $2, updated_at = CURRENT_TIMESTAMP
             WHERE id = $1",
             id,
-            stage as WebAssistStage
+            stage_value
         )
         .execute(pool)
         .await?;
@@ -315,12 +316,13 @@ impl WebAssistProject {
         id: Uuid,
         status: SyncStatus,
     ) -> Result<(), sqlx::Error> {
+        let status_value = status as SyncStatus;
         sqlx::query!(
             "UPDATE web_assist_projects
             SET sync_status = $2, last_synced_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
             WHERE id = $1",
             id,
-            status as SyncStatus
+            status_value
         )
         .execute(pool)
         .await?;
@@ -360,6 +362,7 @@ impl WebAssistApproval {
         project_id: Uuid,
         stage: WebAssistStage,
     ) -> Result<Option<Self>, sqlx::Error> {
+        let stage_value = stage as WebAssistStage;
         sqlx::query_as!(
             WebAssistApproval,
             r#"SELECT
@@ -380,7 +383,7 @@ impl WebAssistApproval {
             ORDER BY created_at DESC
             LIMIT 1"#,
             project_id,
-            stage as WebAssistStage
+            stage_value
         )
         .fetch_optional(pool)
         .await
@@ -395,6 +398,8 @@ impl WebAssistApproval {
         deliverables: String,
     ) -> Result<Self, sqlx::Error> {
         let id = Uuid::new_v4();
+        let stage_value = stage as WebAssistStage;
+        let status_value = ApprovalStatus::Pending as ApprovalStatus;
         sqlx::query_as!(
             WebAssistApproval,
             r#"INSERT INTO web_assist_approvals
@@ -415,8 +420,8 @@ impl WebAssistApproval {
                 updated_at as "updated_at!: DateTime<Utc>""#,
             id,
             project_id,
-            stage as WebAssistStage,
-            ApprovalStatus::Pending as ApprovalStatus,
+            stage_value,
+            status_value,
             preview_url,
             deliverables
         )
@@ -431,12 +436,13 @@ impl WebAssistApproval {
         status: ApprovalStatus,
         feedback: Option<String>,
     ) -> Result<(), sqlx::Error> {
+        let status_value = status as ApprovalStatus;
         sqlx::query!(
             "UPDATE web_assist_approvals
             SET status = $2, client_feedback = $3, responded_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
             WHERE id = $1",
             id,
-            status as ApprovalStatus,
+            status_value,
             feedback
         )
         .execute(pool)

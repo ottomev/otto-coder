@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use reqwest::{Client, StatusCode};
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::time::Duration;

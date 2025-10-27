@@ -1,0 +1,86 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT\n                id as \"id!: Uuid\",\n                web_assist_project_id as \"web_assist_project_id!: Uuid\",\n                stage_name as \"stage_name!: WebAssistStage\",\n                approval_id as \"approval_id: Uuid\",\n                status as \"status!: ApprovalStatus\",\n                requested_at as \"requested_at!: DateTime<Utc>\",\n                responded_at as \"responded_at: DateTime<Utc>\",\n                client_feedback,\n                preview_url,\n                deliverables,\n                created_at as \"created_at!: DateTime<Utc>\",\n                updated_at as \"updated_at!: DateTime<Utc>\"\n            FROM web_assist_approvals\n            WHERE web_assist_project_id = $1 AND stage_name = $2\n            ORDER BY created_at DESC\n            LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: Uuid",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "web_assist_project_id!: Uuid",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "stage_name!: WebAssistStage",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "approval_id: Uuid",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "status!: ApprovalStatus",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "requested_at!: DateTime<Utc>",
+        "ordinal": 5,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "responded_at: DateTime<Utc>",
+        "ordinal": 6,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "client_feedback",
+        "ordinal": 7,
+        "type_info": "Text"
+      },
+      {
+        "name": "preview_url",
+        "ordinal": 8,
+        "type_info": "Text"
+      },
+      {
+        "name": "deliverables",
+        "ordinal": 9,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at!: DateTime<Utc>",
+        "ordinal": 10,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "updated_at!: DateTime<Utc>",
+        "ordinal": 11,
+        "type_info": "Datetime"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "f8a06f2c9e01c1ee677356159c94fab18269e8c092010d6458a9aa2fcbf37d61"
+}

@@ -1,0 +1,68 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO web_assist_projects\n                (id, webassist_project_id, otto_project_id, current_stage, stage_task_mapping, sync_status)\n            VALUES ($1, $2, $3, $4, $5, $6)\n            RETURNING\n                id as \"id!: Uuid\",\n                webassist_project_id as \"webassist_project_id!: Uuid\",\n                otto_project_id as \"otto_project_id!: Uuid\",\n                current_stage as \"current_stage!: WebAssistStage\",\n                stage_task_mapping,\n                sync_status as \"sync_status!: SyncStatus\",\n                last_synced_at as \"last_synced_at: DateTime<Utc>\",\n                created_at as \"created_at!: DateTime<Utc>\",\n                updated_at as \"updated_at!: DateTime<Utc>\"",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: Uuid",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "webassist_project_id!: Uuid",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "otto_project_id!: Uuid",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "current_stage!: WebAssistStage",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "stage_task_mapping",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "sync_status!: SyncStatus",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "last_synced_at: DateTime<Utc>",
+        "ordinal": 6,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "created_at!: DateTime<Utc>",
+        "ordinal": 7,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "updated_at!: DateTime<Utc>",
+        "ordinal": 8,
+        "type_info": "Datetime"
+      }
+    ],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": [
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "dc33cb1c067822560622c67279c7a25157a3dee5d2bb78a3d866cea6d75d39da"
+}

@@ -1,0 +1,38 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT\n                id as \"id!: Uuid\",\n                approval_id as \"approval_id: Uuid\",\n                status as \"status!: ApprovalStatus\",\n                updated_at as \"updated_at: chrono::DateTime<chrono::Utc>\"\n            FROM web_assist_approvals\n            WHERE status = 'pending' AND approval_id IS NOT NULL",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: Uuid",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "approval_id: Uuid",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "status!: ApprovalStatus",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "updated_at: chrono::DateTime<chrono::Utc>",
+        "ordinal": 3,
+        "type_info": "Datetime"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      true,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "45a212f1e0b783d928cfe595a3ec59df89c188827254736c1dda96a420e83152"
+}

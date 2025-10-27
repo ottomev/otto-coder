@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE web_assist_approvals\n            SET status = $2, client_feedback = $3, responded_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP\n            WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "11381ca070c1d1829c445783b92a414108c7921160e91c2255cc385ba732bd39"
+}

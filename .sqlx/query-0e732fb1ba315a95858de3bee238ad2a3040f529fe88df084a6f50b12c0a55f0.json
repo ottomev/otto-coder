@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE web_assist_projects\n            SET current_stage = $2, updated_at = CURRENT_TIMESTAMP\n            WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "0e732fb1ba315a95858de3bee238ad2a3040f529fe88df084a6f50b12c0a55f0"
+}

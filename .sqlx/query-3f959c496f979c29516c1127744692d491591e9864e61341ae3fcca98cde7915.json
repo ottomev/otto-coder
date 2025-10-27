@@ -1,0 +1,68 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT\n                id as \"id!: Uuid\",\n                webassist_project_id as \"webassist_project_id!: Uuid\",\n                otto_project_id as \"otto_project_id!: Uuid\",\n                current_stage as \"current_stage!: WebAssistStage\",\n                stage_task_mapping,\n                sync_status as \"sync_status!: SyncStatus\",\n                last_synced_at as \"last_synced_at: DateTime<Utc>\",\n                created_at as \"created_at!: DateTime<Utc>\",\n                updated_at as \"updated_at!: DateTime<Utc>\"\n            FROM web_assist_projects\n            WHERE otto_project_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: Uuid",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "webassist_project_id!: Uuid",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "otto_project_id!: Uuid",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "current_stage!: WebAssistStage",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "stage_task_mapping",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "sync_status!: SyncStatus",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "last_synced_at: DateTime<Utc>",
+        "ordinal": 6,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "created_at!: DateTime<Utc>",
+        "ordinal": 7,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "updated_at!: DateTime<Utc>",
+        "ordinal": 8,
+        "type_info": "Datetime"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "3f959c496f979c29516c1127744692d491591e9864e61341ae3fcca98cde7915"
+}

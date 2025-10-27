@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "UPDATE web_assist_approvals SET approval_id = $2 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": []
+  },
+  "hash": "7ba1dc1a07cafe04b6f0de74278e720a89f1f9c7b1a9c6a5238f77ec00deba95"
+}
