@@ -390,7 +390,7 @@ impl ProjectManager {
     /// Start the first task (Initial Review)
     async fn start_first_task(
         &self,
-        wa_project_id: Uuid,
+        _wa_project_id: Uuid,
         stage_task_mapping: &HashMap<String, Uuid>,
     ) -> Result<()> {
         // Find Initial Review task
