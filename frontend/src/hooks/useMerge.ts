@@ -13,12 +13,15 @@ export function useMerge(
       if (!attemptId) return Promise.resolve();
       return attemptsApi.merge(attemptId);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Refresh attempt-specific branch information
-      queryClient.invalidateQueries({ queryKey: ['branchStatus', attemptId] });
+      await queryClient.invalidateQueries({ queryKey: ['branchStatus', attemptId] });
 
       // If a merge can change the list of branches shown elsewhere
-      queryClient.invalidateQueries({ queryKey: ['projectBranches'] });
+      await queryClient.invalidateQueries({ queryKey: ['projectBranches'] });
+
+      // Refetch task attempts to get updated merge status
+      await queryClient.refetchQueries({ queryKey: ['taskAttempts'] });
 
       onSuccess?.();
     },

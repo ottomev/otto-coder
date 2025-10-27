@@ -120,7 +120,7 @@ const VirtualizedList = ({ attempt }: VirtualizedListProps) => {
         }}
       />
       {loading && (
-        <div className="absolute top-0 left-0 w-full h-full bg-primary flex flex-col gap-2 justify-center items-center">
+        <div className="absolute top-0 left-0 w-full h-full bg-background/80 backdrop-blur-sm flex flex-col gap-2 justify-center items-center">
           <Loader2 className="h-8 w-8 animate-spin" />
           <p>Loading History</p>
         </div>

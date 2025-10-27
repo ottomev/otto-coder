@@ -4,6 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   AlertCircle,
   Folder,
   Search,
@@ -20,7 +27,7 @@ import { CopyFilesField } from './copy-files-field';
 // Removed collapsible sections for simplicity; show fields always in edit mode
 import { fileSystemApi } from '@/lib/api';
 import { showFolderPicker } from '@/lib/modals';
-import { DirectoryEntry } from 'shared/types';
+import { DirectoryEntry, GitHubAccountSafe } from 'shared/types';
 import { generateProjectNameFromPath } from '@/utils/string';
 
 interface ProjectFormFieldsProps {
@@ -46,6 +53,9 @@ interface ProjectFormFieldsProps {
   setError: (error: string) => void;
   projectId?: string;
   onCreateProject?: (path: string, name: string) => void;
+  githubAccountId: string | null;
+  setGithubAccountId: (id: string | null) => void;
+  availableAccounts: GitHubAccountSafe[];
 }
 
 export function ProjectFormFields({
@@ -71,6 +81,9 @@ export function ProjectFormFields({
   setError,
   projectId,
   onCreateProject,
+  githubAccountId,
+  setGithubAccountId,
+  availableAccounts,
 }: ProjectFormFieldsProps) {
   const { system } = useUserSystem();
 
@@ -424,6 +437,33 @@ export function ProjectFormFields({
               placeholder="Enter project name"
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="github-account">GitHub Account</Label>
+            <Select
+              value={githubAccountId || 'none'}
+              onValueChange={(value) =>
+                setGithubAccountId(value === 'none' ? null : value)
+              }
+            >
+              <SelectTrigger id="github-account">
+                <SelectValue placeholder="Use global token" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Use global token</SelectItem>
+                {availableAccounts.map((account) => (
+                  <SelectItem key={account.id} value={account.id}>
+                    {account.username}
+                    {account.primary_email && ` (${account.primary_email})`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-muted-foreground">
+              Select a GitHub account for this project, or use the global token
+              from General Settings
+            </p>
           </div>
         </>
       )}

@@ -10,6 +10,7 @@ pub mod auth;
 pub mod config;
 pub mod containers;
 pub mod filesystem;
+pub mod github_accounts;
 // pub mod github;
 pub mod events;
 pub mod execution_processes;
@@ -37,6 +38,7 @@ pub fn router(deployment: DeploymentImpl) -> IntoMakeService<Router> {
         .merge(events::router(&deployment))
         .merge(approvals::router())
         .nest("/images", images::routes())
+        .nest("/github-accounts", github_accounts::router(&deployment))
         .with_state(deployment);
 
     Router::new()

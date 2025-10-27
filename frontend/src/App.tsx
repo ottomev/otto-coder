@@ -11,6 +11,7 @@ import { usePreviousPath } from '@/hooks/usePreviousPath';
 import {
   AgentSettings,
   GeneralSettings,
+  GitHubAccountsSettings,
   McpSettings,
   SettingsLayout,
 } from '@/pages/settings/';
@@ -181,6 +182,7 @@ function AppContent() {
                   <Route path="/settings/*" element={<SettingsLayout />}>
                     <Route index element={<Navigate to="general" replace />} />
                     <Route path="general" element={<GeneralSettings />} />
+                    <Route path="github-accounts" element={<GitHubAccountsSettings />} />
                     <Route path="agents" element={<AgentSettings />} />
                     <Route path="mcp" element={<McpSettings />} />
                   </Route>

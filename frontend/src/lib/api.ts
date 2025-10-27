@@ -20,6 +20,9 @@ import {
   EditorType,
   ExecutionProcess,
   GitBranch,
+  GitHubAccountSafe,
+  CreateGitHubAccount,
+  UpdateGitHubAccount,
   Project,
   CreateProject,
   RebaseTaskAttemptRequest,
@@ -640,6 +643,54 @@ export const githubApi = {
   listRepositories: async (page: number = 1): Promise<RepositoryInfo[]> => {
     const response = await makeRequest(`/api/github/repositories?page=${page}`);
     return handleApiResponse<RepositoryInfo[]>(response);
+  },
+};
+
+// GitHub Accounts APIs
+export const githubAccountsApi = {
+  getAll: async (): Promise<GitHubAccountSafe[]> => {
+    const response = await makeRequest('/api/github-accounts');
+    return handleApiResponse<GitHubAccountSafe[]>(response);
+  },
+
+  getById: async (id: string): Promise<GitHubAccountSafe> => {
+    const response = await makeRequest(`/api/github-accounts/${id}`);
+    return handleApiResponse<GitHubAccountSafe>(response);
+  },
+
+  create: async (data: CreateGitHubAccount): Promise<GitHubAccountSafe> => {
+    const response = await makeRequest('/api/github-accounts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return handleApiResponse<GitHubAccountSafe>(response);
+  },
+
+  update: async (
+    id: string,
+    data: UpdateGitHubAccount
+  ): Promise<GitHubAccountSafe> => {
+    const response = await makeRequest(`/api/github-accounts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    return handleApiResponse<GitHubAccountSafe>(response);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const response = await makeRequest(`/api/github-accounts/${id}`, {
+      method: 'DELETE',
+    });
+    return handleApiResponse<void>(response);
+  },
+
+  validate: async (
+    id: string
+  ): Promise<{ valid: boolean; error?: string }> => {
+    const response = await makeRequest(`/api/github-accounts/${id}/validate`, {
+      method: 'POST',
+    });
+    return handleApiResponse<{ valid: boolean; error?: string }>(response);
   },
 };
 

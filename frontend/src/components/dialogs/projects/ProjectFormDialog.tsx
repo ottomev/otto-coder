@@ -11,8 +11,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TaskTemplateManager } from '@/components/TaskTemplateManager';
 import { ProjectFormFields } from '@/components/projects/project-form-fields';
-import { CreateProject, Project, UpdateProject } from 'shared/types';
-import { projectsApi } from '@/lib/api';
+import { CreateProject, Project, UpdateProject, GitHubAccountSafe } from 'shared/types';
+import { projectsApi, githubAccountsApi } from '@/lib/api';
 import { generateProjectNameFromPath } from '@/utils/string';
 import NiceModal, { useModal } from '@ebay/nice-modal-react';
 
@@ -35,6 +35,10 @@ export const ProjectFormDialog = NiceModal.create<ProjectFormDialogProps>(
       project?.cleanup_script ?? ''
     );
     const [copyFiles, setCopyFiles] = useState(project?.copy_files ?? '');
+    const [githubAccountId, setGithubAccountId] = useState<string | null>(
+      project?.github_account_id ?? null
+    );
+    const [availableAccounts, setAvailableAccounts] = useState<GitHubAccountSafe[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [repoMode, setRepoMode] = useState<'existing' | 'new'>('existing');
@@ -42,6 +46,19 @@ export const ProjectFormDialog = NiceModal.create<ProjectFormDialogProps>(
     const [folderName, setFolderName] = useState('');
 
     const isEditing = !!project;
+
+    // Load available GitHub accounts
+    useEffect(() => {
+      const loadAccounts = async () => {
+        try {
+          const accounts = await githubAccountsApi.getAll();
+          setAvailableAccounts(accounts);
+        } catch (err) {
+          console.error('Failed to load GitHub accounts:', err);
+        }
+      };
+      loadAccounts();
+    }, []);
 
     // Update form fields when project prop changes
     useEffect(() => {
@@ -52,6 +69,7 @@ export const ProjectFormDialog = NiceModal.create<ProjectFormDialogProps>(
         setDevScript(project.dev_script ?? '');
         setCleanupScript(project.cleanup_script ?? '');
         setCopyFiles(project.copy_files ?? '');
+        setGithubAccountId(project.github_account_id ?? null);
       } else {
         setName('');
         setGitRepoPath('');
@@ -59,6 +77,7 @@ export const ProjectFormDialog = NiceModal.create<ProjectFormDialogProps>(
         setDevScript('');
         setCleanupScript('');
         setCopyFiles('');
+        setGithubAccountId(null);
       }
     }, [project]);
 
@@ -87,6 +106,7 @@ export const ProjectFormDialog = NiceModal.create<ProjectFormDialogProps>(
           dev_script: null,
           cleanup_script: null,
           copy_files: null,
+          github_account_id: githubAccountId,
         };
 
         await projectsApi.create(createData);
@@ -125,6 +145,7 @@ export const ProjectFormDialog = NiceModal.create<ProjectFormDialogProps>(
             dev_script: devScript.trim() || null,
             cleanup_script: cleanupScript.trim() || null,
             copy_files: copyFiles.trim() || null,
+            github_account_id: githubAccountId,
           };
 
           await projectsApi.update(project!.id, updateData);
@@ -138,6 +159,7 @@ export const ProjectFormDialog = NiceModal.create<ProjectFormDialogProps>(
             dev_script: null,
             cleanup_script: null,
             copy_files: null,
+            github_account_id: githubAccountId,
           };
 
           await projectsApi.create(createData);
@@ -226,6 +248,9 @@ export const ProjectFormDialog = NiceModal.create<ProjectFormDialogProps>(
                       error={error}
                       setError={setError}
                       projectId={project ? project.id : undefined}
+                      githubAccountId={githubAccountId}
+                      setGithubAccountId={setGithubAccountId}
+                      availableAccounts={availableAccounts}
                     />
                     <DialogFooter>
                       <Button
@@ -268,6 +293,9 @@ export const ProjectFormDialog = NiceModal.create<ProjectFormDialogProps>(
                   setError={setError}
                   projectId={undefined}
                   onCreateProject={handleDirectCreate}
+                  githubAccountId={githubAccountId}
+                  setGithubAccountId={setGithubAccountId}
+                  availableAccounts={availableAccounts}
                 />
                 {repoMode === 'new' && (
                   <DialogFooter>

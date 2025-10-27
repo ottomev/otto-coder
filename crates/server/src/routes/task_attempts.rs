@@ -1139,6 +1139,47 @@ pub async fn merge_task_attempt(
         )
         .await;
 
+    // Push the base branch to remote after successful merge
+    let github_config = deployment.config().read().await.github.clone();
+    // Use project-specific token if available, otherwise fall back to global token
+    if let Ok(Some(github_token)) = ctx
+        .project
+        .get_github_token(&deployment.db().pool, github_config.token())
+        .await
+    {
+        // Get the path where the base branch is checked out
+        if let Ok(Some(base_checkout_path)) = deployment
+            .git()
+            .find_checkout_path_for_branch(&ctx.project.git_repo_path, &ctx.task_attempt.base_branch)
+        {
+            // Push the base branch to remote
+            if let Err(e) = deployment.git().push_to_github(
+                &base_checkout_path,
+                &ctx.task_attempt.base_branch,
+                &github_token,
+            ) {
+                tracing::warn!(
+                    "Failed to push base branch '{}' to remote after merge: {}",
+                    ctx.task_attempt.base_branch,
+                    e
+                );
+                // Don't fail the merge operation if push fails
+            } else {
+                tracing::info!(
+                    "Successfully pushed base branch '{}' to remote after merge",
+                    ctx.task_attempt.base_branch
+                );
+            }
+        } else {
+            tracing::warn!(
+                "Could not find checkout path for base branch '{}' to push after merge",
+                ctx.task_attempt.base_branch
+            );
+        }
+    } else {
+        tracing::debug!("No GitHub token available, skipping automatic push after merge");
+    }
+
     Ok(ResponseJson(ApiResponse::success(())))
 }
 
@@ -1146,8 +1187,24 @@ pub async fn push_task_attempt_branch(
     Extension(task_attempt): Extension<TaskAttempt>,
     State(deployment): State<DeploymentImpl>,
 ) -> Result<ResponseJson<ApiResponse<()>>, ApiError> {
+    let pool = &deployment.db().pool;
+
+    // Get parent task and project to access github_account_id
+    let task = task_attempt
+        .parent_task(pool)
+        .await?
+        .ok_or(ApiError::TaskAttempt(TaskAttemptError::TaskNotFound))?;
+    let project = task
+        .parent_project(pool)
+        .await?
+        .ok_or(SqlxError::RowNotFound)?;
+
     let github_config = deployment.config().read().await.github.clone();
-    let Some(github_token) = github_config.token() else {
+    // Use project-specific token if available, otherwise fall back to global token
+    let Some(github_token) = project
+        .get_github_token(pool, github_config.token())
+        .await?
+    else {
         return Err(GitHubServiceError::TokenInvalid.into());
     };
 
@@ -1177,8 +1234,21 @@ pub async fn create_github_pr(
     State(deployment): State<DeploymentImpl>,
     Json(request): Json<CreateGitHubPrRequest>,
 ) -> Result<ResponseJson<ApiResponse<String, GitHubServiceError>>, ApiError> {
+    let pool = &deployment.db().pool;
+    let task = task_attempt
+        .parent_task(pool)
+        .await?
+        .ok_or(ApiError::TaskAttempt(TaskAttemptError::TaskNotFound))?;
+    let project = Project::find_by_id(pool, task.project_id)
+        .await?
+        .ok_or(ApiError::Project(ProjectError::ProjectNotFound))?;
+
     let github_config = deployment.config().read().await.github.clone();
-    let Some(github_token) = github_config.token() else {
+    // Use project-specific token if available, otherwise fall back to global token
+    let Some(github_token) = project
+        .get_github_token(pool, github_config.token())
+        .await?
+    else {
         return Ok(ResponseJson(ApiResponse::error_with_data(
             GitHubServiceError::TokenInvalid,
         )));
@@ -1198,15 +1268,6 @@ pub async fn create_github_pr(
                 .map_or_else(|| "main".to_string(), |b| b.to_string())
         }
     });
-
-    let pool = &deployment.db().pool;
-    let task = task_attempt
-        .parent_task(pool)
-        .await?
-        .ok_or(ApiError::TaskAttempt(TaskAttemptError::TaskNotFound))?;
-    let project = Project::find_by_id(pool, task.project_id)
-        .await?
-        .ok_or(ApiError::Project(ProjectError::ProjectNotFound))?;
 
     // Get branch name from task attempt
     let branch_name = task_attempt.branch.as_ref().ok_or_else(|| {
@@ -1504,8 +1565,11 @@ pub async fn get_task_attempt_branch_status(
     // check remote status if the attempt has an open PR or the base_branch is a remote branch
     if has_open_pr || base_branch_type == BranchType::Remote {
         let github_config = deployment.config().read().await.github.clone();
-        let token = github_config
-            .token()
+        // Use project-specific token if available, otherwise fall back to global token
+        let token = ctx
+            .project
+            .get_github_token(pool, github_config.token())
+            .await?
             .ok_or(ApiError::GitHubService(GitHubServiceError::TokenInvalid))?;
 
         // For an attempt with a remote base branch, we compare against that
@@ -1557,12 +1621,18 @@ pub async fn rebase_task_attempt(
         .await?;
     let worktree_path = std::path::Path::new(&container_ref);
 
+    // Use project-specific token if available, otherwise fall back to global token
+    let github_token = ctx
+        .project
+        .get_github_token(pool, github_config.token())
+        .await?;
+
     let result = deployment.git().rebase_branch(
         &ctx.project.git_repo_path,
         worktree_path,
         effective_base_branch.clone().as_deref(),
         &ctx.task_attempt.base_branch.clone(),
-        github_config.token(),
+        github_token,
     );
     if let Err(e) = result {
         use services::services::git::GitServiceError;

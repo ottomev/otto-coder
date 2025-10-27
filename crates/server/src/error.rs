@@ -5,7 +5,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use db::models::{
-    execution_process::ExecutionProcessError, project::ProjectError, task_attempt::TaskAttemptError,
+    execution_process::ExecutionProcessError, github_account::GitHubAccountError, project::ProjectError, task_attempt::TaskAttemptError,
 };
 use deployment::DeploymentError;
 use executors::executors::ExecutorError;
@@ -26,6 +26,8 @@ pub enum ApiError {
     TaskAttempt(#[from] TaskAttemptError),
     #[error(transparent)]
     ExecutionProcess(#[from] ExecutionProcessError),
+    #[error(transparent)]
+    GitHubAccount(#[from] GitHubAccountError),
     #[error(transparent)]
     GitService(#[from] GitServiceError),
     #[error(transparent)]
@@ -71,6 +73,7 @@ impl IntoResponse for ApiError {
                 }
                 _ => (StatusCode::INTERNAL_SERVER_ERROR, "ExecutionProcessError"),
             },
+            ApiError::GitHubAccount(_) => (StatusCode::INTERNAL_SERVER_ERROR, "GitHubAccountError"),
             // Promote certain GitService errors to conflict status with concise messages
             ApiError::GitService(git_err) => match git_err {
                 services::services::git::GitServiceError::MergeConflicts(_) => {

@@ -57,6 +57,7 @@ pub async fn create_project(
         cleanup_script,
         copy_files,
         use_existing_repo,
+        github_account_id,
     } = payload;
     tracing::debug!("Creating project '{}'", name);
 
@@ -143,6 +144,7 @@ pub async fn create_project(
             dev_script,
             cleanup_script,
             copy_files,
+            github_account_id,
         },
         id,
     )
@@ -184,6 +186,7 @@ pub async fn update_project(
         dev_script,
         cleanup_script,
         copy_files,
+        github_account_id,
     } = payload;
     // If git_repo_path is being changed, check if the new path is already used by another project
     let git_repo_path = if let Some(new_git_repo_path) = git_repo_path.map(|s| expand_tilde(&s))
@@ -220,6 +223,7 @@ pub async fn update_project(
         dev_script,
         cleanup_script,
         copy_files,
+        github_account_id.or(existing_project.github_account_id),
     )
     .await
     {

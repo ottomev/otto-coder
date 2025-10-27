@@ -1,18 +1,16 @@
 {
   "name": "Otto Coder",
-  "short_name": "VK",
+  "short_name": "Otto",
   "icons": [
     {
-      "src": "/favicon-vk-light.svg",
-      "sizes": "any",
-      "purpose": "any",
-      "type": "image/svg+xml"
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
     },
     {
-      "src": "/favicon-vk-light-maskable.svg",
-      "sizes": "any",
-      "purpose": "maskable",
-      "type": "image/svg+xml"
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ],
   "theme_color": "#ffffff",
