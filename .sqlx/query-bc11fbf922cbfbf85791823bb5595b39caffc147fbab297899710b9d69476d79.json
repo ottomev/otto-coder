@@ -1,0 +1,86 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT\n            id as \"id!: Uuid\",\n            web_assist_project_id as \"web_assist_project_id!: Uuid\",\n            stage_name as \"stage_name!: web_assist::models::WebAssistStage\",\n            approval_id as \"approval_id: Uuid\",\n            status as \"status!: web_assist::models::ApprovalStatus\",\n            requested_at as \"requested_at!: chrono::DateTime<chrono::Utc>\",\n            responded_at as \"responded_at: chrono::DateTime<chrono::Utc>\",\n            client_feedback,\n            preview_url,\n            deliverables,\n            created_at as \"created_at!: chrono::DateTime<chrono::Utc>\",\n            updated_at as \"updated_at!: chrono::DateTime<chrono::Utc>\"\n        FROM web_assist_approvals\n        WHERE web_assist_project_id = $1\n        ORDER BY created_at DESC",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!: Uuid",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "web_assist_project_id!: Uuid",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "stage_name!: web_assist::models::WebAssistStage",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "approval_id: Uuid",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "status!: web_assist::models::ApprovalStatus",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "requested_at!: chrono::DateTime<chrono::Utc>",
+        "ordinal": 5,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "responded_at: chrono::DateTime<chrono::Utc>",
+        "ordinal": 6,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "client_feedback",
+        "ordinal": 7,
+        "type_info": "Text"
+      },
+      {
+        "name": "preview_url",
+        "ordinal": 8,
+        "type_info": "Text"
+      },
+      {
+        "name": "deliverables",
+        "ordinal": 9,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at!: chrono::DateTime<chrono::Utc>",
+        "ordinal": 10,
+        "type_info": "Datetime"
+      },
+      {
+        "name": "updated_at!: chrono::DateTime<chrono::Utc>",
+        "ordinal": 11,
+        "type_info": "Datetime"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "bc11fbf922cbfbf85791823bb5595b39caffc147fbab297899710b9d69476d79"
+}

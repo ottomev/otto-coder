@@ -233,7 +233,7 @@ impl LocalDeployment {
         Option<Arc<web_assist::ApprovalSync>>,
     ), String> {
         // Load WebAssist configuration
-        let config_path = utils::assets::config_dir().join("web-assist.toml");
+        let config_path = utils::assets::asset_dir().join("web-assist.toml");
         let wa_config = web_assist::load_web_assist_config(&config_path).await?;
 
         // Check if WebAssist is enabled
@@ -254,15 +254,16 @@ impl LocalDeployment {
             anon_key: wa_config.supabase.anon_key.clone().unwrap_or_default(),
             service_role_key: Some(wa_config.supabase_service_role_key().to_string()),
         };
-        let supabase_client = Arc::new(web_assist::SupabaseClient::new(supabase_config));
+        let supabase_client = web_assist::SupabaseClient::new(supabase_config)
+            .map_err(|e| format!("Failed to create Supabase client: {}", e))?;
+        let supabase_client_arc = Arc::new(supabase_client.clone());
 
         // Create ProjectManager
         let project_manager = Arc::new(
             web_assist::ProjectManager::new(
                 db.pool.clone(),
-                supabase_client.clone(),
+                supabase_client,
                 wa_config.projects_directory().clone(),
-                wa_config.executor.default_profile.clone(),
             )
         );
 
@@ -270,16 +271,15 @@ impl LocalDeployment {
         let approval_sync = Arc::new(
             web_assist::ApprovalSync::new(
                 db.pool.clone(),
-                supabase_client.clone(),
+                supabase_client_arc,
             )
         );
 
         // Create WebhookHandler
         let webhook_handler = Arc::new(
             web_assist::WebhookHandler::new(
-                wa_config.webhook_secret().to_string(),
                 project_manager.clone(),
-                approval_sync.clone(),
+                wa_config.webhook_secret().to_string(),
             )
         );
 

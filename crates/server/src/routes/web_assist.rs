@@ -17,6 +17,7 @@ use web_assist::{
 };
 
 use crate::{DeploymentImpl, error::ApiError};
+use deployment::Deployment;
 
 /// Response for WebAssist project status
 #[derive(Debug, Serialize, TS)]

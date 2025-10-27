@@ -16,6 +16,7 @@ pub struct SupabaseConfig {
 }
 
 /// Client for interacting with WebAssist's Supabase backend
+#[derive(Clone)]
 pub struct SupabaseClient {
     client: Client,
     config: SupabaseConfig,
