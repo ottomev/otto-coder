@@ -21,6 +21,7 @@ pub mod projects;
 pub mod task_attempts;
 pub mod task_templates;
 pub mod tasks;
+pub mod web_assist;
 
 pub fn router(deployment: DeploymentImpl) -> IntoMakeService<Router> {
     // Create routers with different middleware layers
@@ -39,6 +40,7 @@ pub fn router(deployment: DeploymentImpl) -> IntoMakeService<Router> {
         .merge(approvals::router())
         .nest("/images", images::routes())
         .nest("/github-accounts", github_accounts::router(&deployment))
+        .nest("/web-assist", web_assist::router(&deployment))
         .with_state(deployment);
 
     Router::new()

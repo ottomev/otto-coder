@@ -1,0 +1,237 @@
+# =====================================================
+# WebAssist Integration Configuration
+# =====================================================
+#
+# This file configures Otto Coder's integration with the
+# WebAssist project tracking system (Supabase backend).
+#
+# Copy this file to config/web-assist.toml and fill in your values.
+#
+# =====================================================
+
+[web_assist]
+# Enable or disable WebAssist integration
+enabled = true
+
+# Webhook secret for verifying Supabase webhooks (HMAC-SHA256)
+# Generate a strong secret with: openssl rand -hex 32
+webhook_secret = "your-webhook-secret-here"
+
+# Directory where WebAssist projects will be stored
+# Each project gets its own subdirectory: {projects_directory}/{project_id}/
+projects_directory = "~/web-assist-projects"
+
+# =====================================================
+# Supabase Configuration
+# =====================================================
+
+[web_assist.supabase]
+# Your Supabase project URL
+url = "https://your-project.supabase.co"
+
+# Supabase anonymous key (for client-side operations)
+anon_key = "your-anon-key-here"
+
+# Supabase service role key (for admin operations - keep secret!)
+# This key has full database access - NEVER expose it in frontend code
+service_role_key = "your-service-role-key-here"
+
+# =====================================================
+# Executor Configuration
+# =====================================================
+
+[web_assist.executor]
+# Default executor profile for AI-powered stages
+# Options: "claude/claude-code", "gemini/gemini-cli", "codex/codex", etc.
+default_profile = "claude/claude-code"
+
+# Timeout for research stage (in minutes)
+# Stage 2 (AI Research) should be thorough - allow full 2 hours
+research_timeout_minutes = 120
+
+# Timeout for design stage (in minutes)
+design_timeout_minutes = 480  # 8 hours
+
+# Timeout for development stage (in minutes)
+development_timeout_minutes = 960  # 16 hours
+
+# Timeout for QA stage (in minutes)
+qa_timeout_minutes = 240  # 4 hours
+
+# Timeout for deployment stage (in minutes)
+deployment_timeout_minutes = 240  # 4 hours
+
+# =====================================================
+# Approval Workflow Configuration
+# =====================================================
+
+[web_assist.approvals]
+# Automatically create approval requests in WebAssist Supabase
+# when Otto Coder tasks complete stages that require approval
+auto_create_in_webassist = true
+
+# How often to sync approval status between systems (in seconds)
+# Lower values = more real-time but more API calls
+sync_interval_seconds = 30
+
+# Allow approvals from both Otto Coder and WebAssist UIs
+bidirectional_approvals = true
+
+# =====================================================
+# Next.js Project Configuration
+# =====================================================
+
+[web_assist.nextjs]
+# Next.js version to use for new projects
+version = "latest"
+
+# Use TypeScript
+typescript = true
+
+# Use Tailwind CSS
+tailwind = true
+
+# Use App Router (vs Pages Router)
+app_router = true
+
+# Package manager: "npm", "pnpm", "yarn", or "bun"
+package_manager = "npm"
+
+# =====================================================
+# Monitoring & Logging
+# =====================================================
+
+[web_assist.monitoring]
+# Log level for WebAssist operations
+# Options: "trace", "debug", "info", "warn", "error"
+log_level = "info"
+
+# Enable detailed webhook logging
+log_webhooks = true
+
+# Enable detailed API call logging
+log_api_calls = true
+
+# Enable task execution logging
+log_task_execution = true
+
+# =====================================================
+# Performance & Optimization
+# =====================================================
+
+[web_assist.performance]
+# Maximum concurrent projects Otto Coder can handle
+max_concurrent_projects = 10
+
+# Maximum concurrent tasks per project
+max_concurrent_tasks_per_project = 1
+
+# Retry failed API calls (to Supabase)
+retry_failed_api_calls = true
+
+# Number of retries before giving up
+max_api_retries = 3
+
+# Delay between retries (in seconds)
+retry_delay_seconds = 5
+
+# =====================================================
+# File Management
+# =====================================================
+
+[web_assist.files]
+# Maximum size for deliverable files (in MB)
+max_deliverable_size_mb = 50
+
+# Allowed file types for deliverables
+allowed_file_types = ["pdf", "png", "jpg", "jpeg", "gif", "svg", "md", "txt", "json"]
+
+# Clean up project files after delivery (in days)
+# Set to 0 to keep forever
+cleanup_after_days = 90
+
+# Compress deliverables for storage
+compress_deliverables = true
+
+# =====================================================
+# Notifications (Optional)
+# =====================================================
+
+[web_assist.notifications]
+# Send email notifications on project events
+email_notifications = false
+
+# Email address to send notifications to
+notification_email = "team@example.com"
+
+# Events to notify about
+notify_on_project_created = true
+notify_on_stage_completed = false
+notify_on_approval_needed = true
+notify_on_approval_received = true
+notify_on_project_completed = true
+notify_on_errors = true
+
+# =====================================================
+# Advanced Settings
+# =====================================================
+
+[web_assist.advanced]
+# Enable experimental features
+experimental_features = false
+
+# Use git worktrees for isolation (recommended)
+use_git_worktrees = true
+
+# Automatically clean up orphaned worktrees
+auto_cleanup_worktrees = true
+
+# Maximum age of orphaned worktrees before cleanup (in hours)
+worktree_max_age_hours = 48
+
+# Enable parallel task execution within a project
+# (Currently not supported - tasks run sequentially)
+enable_parallel_tasks = false
+
+# =====================================================
+# Example Full Configuration
+# =====================================================
+#
+# [web_assist]
+# enabled = true
+# webhook_secret = "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+# projects_directory = "/home/otto/web-assist-projects"
+#
+# [web_assist.supabase]
+# url = "https://xyzabc123.supabase.co"
+# anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+# service_role_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+#
+# [web_assist.executor]
+# default_profile = "claude/claude-code"
+# research_timeout_minutes = 120
+#
+# [web_assist.approvals]
+# auto_create_in_webassist = true
+# sync_interval_seconds = 30
+#
+# =====================================================
+# Security Best Practices
+# =====================================================
+#
+# 1. NEVER commit this file with real secrets to git
+#    Add config/web-assist.toml to .gitignore
+#
+# 2. Use strong, randomly generated secrets
+#    Generate with: openssl rand -hex 32
+#
+# 3. Keep service_role_key secret - it has full database access
+#
+# 4. Rotate secrets periodically (every 90 days recommended)
+#
+# 5. Use environment variables in production:
+#    export WEB_ASSIST_WEBHOOK_SECRET="your-secret"
+#    export WEB_ASSIST_SUPABASE_URL="your-url"
+#    etc.
+#
+# =====================================================

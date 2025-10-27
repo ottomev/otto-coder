@@ -42,6 +42,10 @@ pub struct LocalDeployment {
     events: EventService,
     file_search_cache: Arc<FileSearchCache>,
     approvals: Approvals,
+    // WebAssist integration (optional)
+    web_assist_webhook_handler: Option<Arc<web_assist::WebhookHandler>>,
+    web_assist_project_manager: Option<Arc<web_assist::ProjectManager>>,
+    web_assist_approval_sync: Option<Arc<web_assist::ApprovalSync>>,
 }
 
 #[async_trait]
@@ -126,6 +130,17 @@ impl Deployment for LocalDeployment {
         let events = EventService::new(db.clone(), events_msg_store, events_entry_count);
         let file_search_cache = Arc::new(FileSearchCache::new());
 
+        // Initialize WebAssist integration (if enabled)
+        let (web_assist_webhook_handler, web_assist_project_manager, web_assist_approval_sync) = {
+            match Self::initialize_web_assist(&db).await {
+                Ok(components) => components,
+                Err(e) => {
+                    tracing::warn!("WebAssist integration disabled: {}", e);
+                    (None, None, None)
+                }
+            }
+        };
+
         Ok(Self {
             config,
             sentry,
@@ -141,6 +156,9 @@ impl Deployment for LocalDeployment {
             events,
             file_search_cache,
             approvals,
+            web_assist_webhook_handler,
+            web_assist_project_manager,
+            web_assist_approval_sync,
         })
     }
 
@@ -201,5 +219,91 @@ impl Deployment for LocalDeployment {
 
     fn approvals(&self) -> &Approvals {
         &self.approvals
+    }
+}
+
+impl LocalDeployment {
+    /// Initialize WebAssist integration components
+    /// Returns (webhook_handler, project_manager, approval_sync) wrapped in Options
+    async fn initialize_web_assist(
+        db: &DBService,
+    ) -> Result<(
+        Option<Arc<web_assist::WebhookHandler>>,
+        Option<Arc<web_assist::ProjectManager>>,
+        Option<Arc<web_assist::ApprovalSync>>,
+    ), String> {
+        // Load WebAssist configuration
+        let config_path = utils::assets::config_dir().join("web-assist.toml");
+        let wa_config = web_assist::load_web_assist_config(&config_path).await?;
+
+        // Check if WebAssist is enabled
+        if !wa_config.enabled {
+            return Ok((None, None, None));
+        }
+
+        // Validate configuration
+        if !wa_config.is_valid() {
+            return Err("WebAssist configuration is incomplete. Check webhook_secret, projects_directory, and supabase settings.".to_string());
+        }
+
+        tracing::info!("Initializing WebAssist integration...");
+
+        // Create Supabase client
+        let supabase_config = web_assist::SupabaseConfig {
+            url: wa_config.supabase_url().to_string(),
+            anon_key: wa_config.supabase.anon_key.clone().unwrap_or_default(),
+            service_role_key: Some(wa_config.supabase_service_role_key().to_string()),
+        };
+        let supabase_client = Arc::new(web_assist::SupabaseClient::new(supabase_config));
+
+        // Create ProjectManager
+        let project_manager = Arc::new(
+            web_assist::ProjectManager::new(
+                db.pool.clone(),
+                supabase_client.clone(),
+                wa_config.projects_directory().clone(),
+                wa_config.executor.default_profile.clone(),
+            )
+        );
+
+        // Create ApprovalSync
+        let approval_sync = Arc::new(
+            web_assist::ApprovalSync::new(
+                db.pool.clone(),
+                supabase_client.clone(),
+            )
+        );
+
+        // Create WebhookHandler
+        let webhook_handler = Arc::new(
+            web_assist::WebhookHandler::new(
+                wa_config.webhook_secret().to_string(),
+                project_manager.clone(),
+                approval_sync.clone(),
+            )
+        );
+
+        tracing::info!("WebAssist integration initialized successfully");
+
+        Ok((
+            Some(webhook_handler),
+            Some(project_manager),
+            Some(approval_sync),
+        ))
+    }
+
+    /// Get the WebAssist webhook handler (if enabled)
+    pub fn web_assist_webhook_handler(&self) -> Option<Arc<web_assist::WebhookHandler>> {
+        self.web_assist_webhook_handler.clone()
+    }
+
+    /// Get the WebAssist project manager (if enabled)
+    pub fn web_assist_project_manager(&self) -> Option<Arc<web_assist::ProjectManager>> {
+        self.web_assist_project_manager.clone()
+    }
+
+    /// Get the WebAssist approval sync (if enabled)
+    pub fn web_assist_approval_sync(&self) -> Option<Arc<web_assist::ApprovalSync>> {
+        self.web_assist_approval_sync.clone()
     }
 }
